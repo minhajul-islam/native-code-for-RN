@@ -90,11 +90,11 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
      */
     private void launchPicker(Promise contactsPromise, int requestCode) {
 //        this.contentResolver.query(Uri.parse("content://com.android.contacts/contacts/lookup/0r3-A7416BA07AEA92F2/3"), null, null, null, null);
-        Cursor cursor = this.contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        Cursor cursor = this.contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         if (cursor != null) {
             mContactsPromise = contactsPromise;
             Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
             mCtx = getCurrentActivity();
             if (intent.resolveActivity(mCtx.getPackageManager()) != null) {
                 mCtx.startActivityForResult(intent, requestCode);
@@ -120,57 +120,34 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                 switch(requestCode) {
                     case(CONTACT_REQUEST):
                         try {
-                            /* Retrieve all possible data about contact and return as a JS object */
 
-                            //First get ID
-                            String id = null;
+                            String id = null,name="",hasPhone="";
                             int idx;
                             WritableMap contactData = Arguments.createMap();
                             Cursor cursor = this.contentResolver.query(contactUri, null, null, null, null);
                             if (cursor != null && cursor.moveToFirst()) {
-                                idx = cursor.getColumnIndex(ContactsContract.Contacts._ID);
+
+                                idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID);
                                 id = cursor.getString(idx);
+
+                                idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                                name = cursor.getString(idx);
+
+                                idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                                hasPhone = cursor.getString(idx);
                             } else {
                                 mContactsPromise.reject(E_CONTACT_NO_DATA, "Contact Data Not Found");
                                 return;
                             }
 
+                            Log.e("my_cursor",name);
+                            Log.e("my_cursor",hasPhone);
 
-                            // Build the Entity URI.
-                            Uri.Builder b = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id).buildUpon();
-                            b.appendPath(ContactsContract.Contacts.Entity.CONTENT_DIRECTORY);
-                            contactUri = b.build();
 
-                            // Create the projection (SQL fields) and sort order.
-                            String[] projection = {
-                                ContactsContract.Contacts.Entity.MIMETYPE,
-                                ContactsContract.Contacts.Entity.DATA1
-                            };
-                            String sortOrder = ContactsContract.Contacts.Entity.RAW_CONTACT_ID + " ASC";
-                            cursor = this.contentResolver.query(contactUri, projection, null, null, sortOrder);
-                            if(cursor == null)  return;
-
-                            String mime;
                             boolean foundData = false;
-                            /* Map Any contact data we want returned to the JS object key for React Native */
-                            HashMap<String, String> returnKeys = new HashMap<String, String>();
-                            returnKeys.put(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, "name");
-                            returnKeys.put(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, "phone");
-                            returnKeys.put(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, "email");
-
-                            int dataIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.DATA1);
-                            int mimeIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.MIMETYPE);
-                            if (cursor.moveToFirst()) {
-                                do {
-                                    mime = cursor.getString(mimeIdx);
-                                    if(returnKeys.containsKey(mime)) {
-                                        contactData.putString((String) returnKeys.get(mime), cursor.getString(dataIdx));
-                                        foundData = true;
-                                    }
-                                } while (cursor.moveToNext());
-                            }
-
-                            cursor.close();
+                            contactData.putString("name", name);
+                            contactData.putString("phone", hasPhone);
+                            foundData = true;
                             if(foundData) {
                                 mContactsPromise.resolve(contactData);
                                 return;

@@ -109,8 +109,8 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
     public void onActivityResult(Activity ContactsWrapper, final int requestCode, final int resultCode, final Intent intent) {
 
         if(mContactsPromise == null || mCtx == null
-              || (requestCode != CONTACT_REQUEST && requestCode != EMAIL_REQUEST)){
-          return;
+                || (requestCode != CONTACT_REQUEST && requestCode != EMAIL_REQUEST)){
+            return;
         }
 
         String email = null;
@@ -121,7 +121,7 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                     case(CONTACT_REQUEST):
                         try {
 
-                            String id = null,name="",hasPhone="";
+                            String id = null,name="",hasPhone="",thumbnail="",imageUri="";
                             int idx;
                             WritableMap contactData = Arguments.createMap();
                             Cursor cursor = this.contentResolver.query(contactUri, null, null, null, null);
@@ -135,6 +135,12 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
 
                                 idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                                 hasPhone = cursor.getString(idx);
+
+                                imageUri = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI));
+                                thumbnail = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
+
+                                thumbnail = thumbnail != null ? thumbnail : imageUri;
+
                             } else {
                                 mContactsPromise.reject(E_CONTACT_NO_DATA, "Contact Data Not Found");
                                 return;
@@ -147,6 +153,8 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                             boolean foundData = false;
                             contactData.putString("name", name);
                             contactData.putString("phone", hasPhone);
+
+                            contactData.putString("thumbnail", thumbnail==null?"":thumbnail);
                             foundData = true;
                             if(foundData) {
                                 mContactsPromise.resolve(contactData);
@@ -170,8 +178,8 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
 
                             // query for everything email
                             Cursor cursor = mCtx.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-                                                                            null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=?", new String[]{id},
-                                                                            null);
+                                    null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=?", new String[]{id},
+                                    null);
 
                             int emailIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA);
 

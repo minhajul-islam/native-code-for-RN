@@ -112,7 +112,7 @@ public class RNScrathViewMain extends RelativeLayout {
 
     public void setImagePattern(String uri) {
         //new DownloadImageTask(false).execute(uri);
-        imagePattern.setScratchBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.scratch_top));
+        imagePattern.setScratchBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_scratch_pattern));
         imagePatternLoadEnd = true;
 
     }

@@ -35,7 +35,7 @@ UIImage *_imagePattern;
 -(void)reloadView {
     NSURL *urlScratched = [NSURL URLWithString:imageScratchedValue];
     NSData *dataScratched = [NSData dataWithContentsOfURL:urlScratched];
-    UIImage *imageResize = [self scaleImage:[UIImage imageNamed:@"scrach_image"] toSize:viewSize];
+    UIImage *imageResize = [self scaleImage:[UIImage imageNamed:@"ic_scratch_pattern"] toSize:viewSize];
 
     _imageScratched = [[UIImageView alloc] initWithImage:imageResize];
 
@@ -50,7 +50,7 @@ UIImage *_imagePattern;
 
     NSURL *urlPattern = [NSURL URLWithString:imagePatternValue];
     NSData *dataPattern = [NSData dataWithContentsOfURL:urlPattern];
-    _imagePattern = [self scaleImage:[UIImage imageNamed:@"scrach_image"] toSize:viewSize];
+    _imagePattern = [self scaleImage:[UIImage imageNamed:@"ic_scratch_pattern"] toSize:viewSize];
 
     _scratchImageView = [[MDScratchImageView alloc] initWithFrame:_imageScratched.frame];
     _scratchImageView.delegate = self;
